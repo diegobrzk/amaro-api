@@ -10,6 +10,8 @@ import br.com.amaro.api.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 import static br.com.amaro.api.util.SimilarityUtils.calculateSimilarity;
@@ -47,9 +49,11 @@ public class DefaultProductService implements ProductService {
 
     private ProductDTO populateSimilarity(final Product p1, final ProductDTO p2) {
 
-        p2.setSimilarity(calculateSimilarity(
+        BigDecimal similarity = BigDecimal.valueOf(calculateSimilarity(
                 convertSimilarityArray(p1.getTagsVector()),
                 convertSimilarityArray(p2.getTagsVector())));
+
+        p2.setSimilarity(similarity.setScale(2, RoundingMode.HALF_EVEN).doubleValue());
 
         return p2;
     }
