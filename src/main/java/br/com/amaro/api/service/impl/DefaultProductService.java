@@ -3,7 +3,6 @@ package br.com.amaro.api.service.impl;
 import br.com.amaro.api.converter.ProductConverter;
 import br.com.amaro.api.dto.ProductDTO;
 import br.com.amaro.api.dto.ProductListDTO;
-import br.com.amaro.api.dto.Tag;
 import br.com.amaro.api.model.Product;
 import br.com.amaro.api.repository.ProductRepository;
 import br.com.amaro.api.service.ProductService;
@@ -12,8 +11,11 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
+import static br.com.amaro.api.util.ProductUtils.populateProductTagsVector;
 import static br.com.amaro.api.util.SimilarityUtils.calculateSimilarity;
 import static br.com.amaro.api.util.SimilarityUtils.convertSimilarityArray;
 import static java.util.Comparator.reverseOrder;
@@ -47,6 +49,17 @@ public class DefaultProductService implements ProductService {
                     .collect(toList())).build();
     }
 
+    @Override
+    public ProductListDTO populateTagsVectors(final List<ProductDTO> products) {
+
+        products.forEach(p -> populateProductTagsVector(p));
+
+        final List<Product> sources = products.stream().map(p -> productConverter.convert(p)).collect(toList());
+        productRepository.saveAll(sources);
+
+        return ProductListDTO.builder().products(products).build();
+    }
+
     private ProductDTO populateSimilarity(final Product p1, final ProductDTO p2) {
 
         BigDecimal similarity = BigDecimal.valueOf(calculateSimilarity(
@@ -56,25 +69,5 @@ public class DefaultProductService implements ProductService {
         p2.setSimilarity(similarity.setScale(2, RoundingMode.HALF_EVEN).doubleValue());
 
         return p2;
-    }
-
-    @Override
-    public ProductListDTO populateTagsVectors(final List<ProductDTO> products) {
-
-        products.forEach(p -> p.setTagsVector(getProductTagsVector(p)));
-
-        final List<Product> sources = products.stream().map(p -> productConverter.convert(p)).collect(toList());
-        productRepository.saveAll(sources);
-
-        return ProductListDTO.builder().products(products).build();
-    }
-
-    private List<Integer> getProductTagsVector(final ProductDTO product) {
-
-        final Map<String, Integer> tags = Tag.valuesAsMap();
-
-        product.getTags().stream().forEach(tag -> tags.replace(tag, 1));
-
-        return new ArrayList<>(tags.values());
     }
 }

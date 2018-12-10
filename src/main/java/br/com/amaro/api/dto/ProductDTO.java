@@ -20,6 +20,10 @@ public class ProductDTO implements Serializable {
     private String id;
     private String name;
     private Double similarity;
+
+    @Singular("tag")
     private List<String> tags;
+
+    @Singular("tagVector")
     private List<Integer> tagsVector;
 }

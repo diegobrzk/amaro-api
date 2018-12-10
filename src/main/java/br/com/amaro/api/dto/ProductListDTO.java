@@ -16,6 +16,7 @@ public class ProductListDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    @Singular("product")
     private List<ProductDTO> products = new ArrayList<>();
 
     @JsonInclude(JsonInclude.Include.NON_NULL)

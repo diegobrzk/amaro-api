@@ -45,5 +45,4 @@ public class EsConfig {
         return new ElasticsearchTemplate(client());
     }
 
-
 }
