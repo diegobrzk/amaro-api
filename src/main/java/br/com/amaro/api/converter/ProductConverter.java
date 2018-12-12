@@ -11,6 +11,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProductConverter implements Converter<ProductDTO, Product> {
 
+    /**
+     * This implementation converts {@link ProductDTO} to {@link Product}.
+     *
+     * @param source
+     * @return {@link Product}
+     */
     public Product convert(final ProductDTO source) {
         return Product.builder()
                 .id(source.getId())

@@ -44,6 +44,8 @@ Because of an elasticsearch dependency we need to increase the *max_map_count* o
 $ sudo sysctl -w vm.max_map_count=262144
 ```
 
+See more about here: https://www.elastic.co/guide/en/elasticsearch/reference/current/_maximum_map_count_check.html
+
 ## Build & Run
 
 Once the git repository is clonned you can do as follows:
@@ -86,7 +88,7 @@ You can also import *amaro-api-sample.json* at [Postman] to test the endpoints w
 Use swagger to see the application documentation:
 
 ```sh
-$ http://localhost:8080/swagger
+$ http://localhost:8080/swagger-ui.html#/
 ```
 
 See ya.

@@ -40,9 +40,4 @@ public class EsConfig {
         return client;
     }
 
-    @Bean
-    public ElasticsearchOperations elasticsearchTemplate() throws Exception {
-        return new ElasticsearchTemplate(client());
-    }
-
 }

@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
 
@@ -39,6 +41,8 @@ public class ProductControllerTest {
     private static final String[] P3_TAGS = new String[]{Tag.VELUDO.getName(), Tag.MODERNO.getName()};
     private static final Double P3_SIMILARITY = 0.41D;
 
+    private static final String P_NOTFOUND = "0000";
+
     @Autowired
     private TestRestTemplate restTemplate;
 
@@ -54,10 +58,12 @@ public class ProductControllerTest {
 
         final ProductDTO p1 = ProductDTO.builder().id(P1_ID).name(P1_NAME).tags(asList(P1_TAGS)).build();
 
-        final ProductListDTO response = this.restTemplate.postForEntity(
-                "/product/tags", ProductListDTO.builder().product(p1).build(), ProductListDTO.class).getBody();
+        final ResponseEntity<ProductListDTO> response = this.restTemplate.postForEntity(
+                "/product/tags", ProductListDTO.builder().product(p1).build(), ProductListDTO.class);
 
-        final ProductDTO product = response.getProducts().get(0);
+        assertEquals("HttpStatus from request should return OK (200).", HttpStatus.OK, response.getStatusCode());
+
+        final ProductDTO product = response.getBody().getProducts().get(0);
 
         assertTrue(!CollectionUtils.isEmpty(product.getTagsVector()));
         assertTrue(P1_VECTORTAGS.size() == product.getTagsVector().size());
@@ -77,12 +83,26 @@ public class ProductControllerTest {
 
         final ProductListDTO tags = this.restTemplate.postForEntity("/product/tags", products, ProductListDTO.class).getBody();
 
-        tags.setCode("8001");
+        tags.setCode(P1_ID);
 
-        final ProductListDTO response = this.restTemplate.postForEntity("/product/similarity", tags, ProductListDTO.class).getBody();
+        final ResponseEntity<ProductListDTO> response = this.restTemplate.postForEntity("/product/similarity", tags, ProductListDTO.class);
 
-        assertEquals(response.getProducts().get(0).getSimilarity(), P2_SIMILARITY);
-        assertEquals(response.getProducts().get(1).getSimilarity(), P3_SIMILARITY);
+        assertEquals("HttpStatus from request should return OK (200).", HttpStatus.OK, response.getStatusCode());
+
+        assertEquals(P2_SIMILARITY, response.getBody().getProducts().get(0).getSimilarity());
+        assertEquals(P3_SIMILARITY, response.getBody().getProducts().get(1).getSimilarity());
     }
 
+    @Test
+    public void shouldNotFoundProduct() {
+
+        final ProductListDTO tags = ProductListDTO.builder().build();
+
+        tags.setCode(P_NOTFOUND);
+
+        final ResponseEntity<ProductListDTO> response = this.restTemplate.postForEntity("/product/similarity", tags, ProductListDTO.class);
+
+        assertEquals("HttpStatus from request should return OK (200).", HttpStatus.OK, response.getStatusCode());
+        assertNull(response.getBody());
+    }
 }

@@ -6,6 +6,8 @@ import br.com.amaro.api.dto.ProductListDTO;
 import br.com.amaro.api.model.Product;
 import br.com.amaro.api.repository.ProductRepository;
 import br.com.amaro.api.service.ProductService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,8 @@ import static java.util.stream.Collectors.toList;
 @Service
 public class DefaultProductService implements ProductService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultProductService.class);
+
     @Autowired
     private ProductRepository productRepository;
 
@@ -34,10 +38,14 @@ public class DefaultProductService implements ProductService {
     @Override
     public ProductListDTO populateSimilarity(final List<ProductDTO> products, final String code) {
 
+        LOG.debug("Trying to find product with code {}.", code);
+
         final Optional<Product> p1 = productRepository.findById(code);
 
-        if (!p1.isPresent())
+        if (!p1.isPresent()) {
+            LOG.debug("Product with code {} not found.", code);
             return null;
+        }
 
         return ProductListDTO.builder()
                 .products(products.stream()
@@ -55,7 +63,12 @@ public class DefaultProductService implements ProductService {
         products.forEach(p -> populateProductTagsVector(p));
 
         final List<Product> sources = products.stream().map(p -> productConverter.convert(p)).collect(toList());
-        productRepository.saveAll(sources);
+
+        try {
+            productRepository.saveAll(sources);
+        } catch (final Exception e) {
+            LOG.error("Found error trying to save at repository.", e);
+        }
 
         return ProductListDTO.builder().products(products).build();
     }
